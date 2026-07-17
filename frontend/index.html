@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaskFlow AI — Multi-Agent Project Planner</title>
+<style>
+  :root {
+    --navy: #0b2545;
+    --navy-deep: #071a33;
+    --teal: #028090;
+    --seafoam: #00a896;
+    --mint: #02c39a;
+    --paper: #f4faf9;
+    --ink: #0b2545;
+    --muted: #5b6b73;
+    --line: #d8e6e4;
+    --amber: #e0a339;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .hero {
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: white;
+    padding: 3.5rem 1.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(2,195,154,0.25), transparent 70%);
+  }
+
+  .hero-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--mint);
+    margin-bottom: 0.9rem;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    line-height: 1.15;
+    margin: 0 0 0.9rem;
+    font-weight: 400;
+  }
+
+  .hero p.sub {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #cadcfc;
+    font-size: 1rem;
+    max-width: 620px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2.2rem;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    flex-wrap: wrap;
+  }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    font-size: 0.82rem;
+    color: #cadcfc;
+    transition: all 0.3s ease;
+  }
+
+  .stage.active {
+    background: var(--mint);
+    border-color: var(--mint);
+    color: var(--navy-deep);
+    font-weight: 600;
+  }
+
+  .stage-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .arrow { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
+
+  main {
+    max-width: 880px;
+    margin: -1.5rem auto 0;
+    padding: 0 1.5rem 4rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px -20px rgba(11,37,69,0.25);
+    padding: 2rem;
+    margin-bottom: 1.75rem;
+  }
+
+  label {
+    display: block;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.98rem;
+    color: var(--ink);
+    resize: vertical;
+    background: var(--paper);
+  }
+
+  textarea:focus, button:focus-visible {
+    outline: 3px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.1rem;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--navy);
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px -8px rgba(11,37,69,0.5); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+  }
+  .btn-secondary:hover:not(:disabled) { background: rgba(2,128,144,0.08); }
+
+  .status-line {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.9rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 400;
+    margin: 0 0 1.2rem;
+    color: var(--navy);
+  }
+
+  .milestone {
+    border-left: 3px solid var(--seafoam);
+    padding: 0.15rem 0 0.15rem 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .milestone-name {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--navy);
+  }
+
+  .milestone-meta {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+  }
+
+  .task-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.84rem;
+  }
+
+  .task-table th {
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 0.5rem 0.6rem;
+    border-bottom: 2px solid var(--line);
+  }
+
+  .task-table td {
+    padding: 0.6rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .pill.High, .pill.Critical { background: #fde3d0; color: #a1450f; }
+  .pill.Medium { background: #fef3d0; color: #916a06; }
+  .pill.Low { background: #d9f3ec; color: #0d6e5a; }
+
+  .reminder-email {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.9rem;
+    background: var(--paper);
+  }
+
+  .reminder-email .subject {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--navy);
+    margin-bottom: 0.3rem;
+  }
+
+  .reminder-email .to {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .reminder-email .body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #29323a;
+  }
+
+  .sent-badge {
+    display: inline-block;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 5px;
+    margin-left: 0.5rem;
+  }
+  .sent-badge.yes { background: #d9f3ec; color: #0d6e5a; }
+  .sent-badge.no { background: #eee; color: #666; }
+
+  .empty-state {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  footer {
+    text-align: center;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.78rem;
+    color: var(--muted);
+    padding-bottom: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .task-table { font-size: 0.75rem; }
+    .task-table th:nth-child(4), .task-table td:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">SDG 8 · Decent Work &amp; Economic Growth</div>
+    <h1>Give it a project brief. It plans, assigns, and follows up — on its own.</h1>
+    <p class="sub">TaskFlow AI is a three-agent pipeline: a Planner that breaks your project into milestones, a Task Agent that assigns concrete work to the right teammate, and a Reminder Agent that never lets a deadline slip quietly.</p>
+
+    <div class="pipeline">
+      <div class="stage" id="stage-planner"><span class="stage-dot"></span> Planner Agent</div>
+      <span class="arrow">→</span>
+      <div class="stage" id="stage-task"><span class="stage-dot"></span> Task Agent</div>
+      <span class="arrow">→</span>
+      <div class="stage" id="stage-reminder"><span class="stage-dot"></span> Reminder Agent</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="card">
+    <label for="project-input">Describe your project</label>
+    <textarea id="project-input" placeholder="e.g. I have a task of designing a new e-commerce website for my client, featuring 500 products, to launch by December."></textarea>
+    <div class="actions">
+      <button class="btn-primary" id="plan-btn">Generate plan</button>
+      <button class="btn-secondary" id="remind-btn">Check reminders</button>
+    </div>
+    <div class="status-line" id="status-line"></div>
+  </div>
+
+  <div class="card" id="milestones-card" style="display:none;">
+    <h2>Milestones</h2>
+    <div id="milestones-list"></div>
+  </div>
+
+  <div class="card" id="tasks-card" style="display:none;">
+    <h2>Tasks</h2>
+    <div style="overflow-x:auto;">
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Assigned to</th>
+            <th>Due</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody id="tasks-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="reminders-card" style="display:none;">
+    <h2>Reminder emails</h2>
+    <div id="reminders-list"></div>
+  </div>
+</main>
+
+<footer>Built with LangGraph &middot; Planner → Task → Reminder</footer>
+
+<script>
+  // ---- Point this at your deployed backend URL ----
+  const API_BASE = window.API_BASE_URL || "http://localhost:8000";
+
+  const planBtn = document.getElementById("plan-btn");
+  const remindBtn = document.getElementById("remind-btn");
+  const statusLine = document.getElementById("status-line");
+  const projectInput = document.getElementById("project-input");
+
+  const stagePlanner = document.getElementById("stage-planner");
+  const stageTask = document.getElementById("stage-task");
+  const stageReminder = document.getElementById("stage-reminder");
+
+  const milestonesCard = document.getElementById("milestones-card");
+  const milestonesList = document.getElementById("milestones-list");
+  const tasksCard = document.getElementById("tasks-card");
+  const tasksBody = document.getElementById("tasks-body");
+  const remindersCard = document.getElementById("reminders-card");
+  const remindersList = document.getElementById("reminders-list");
+
+  function resetStages() {
+    [stagePlanner, stageTask, stageReminder].forEach(s => s.classList.remove("active"));
+  }
+
+  planBtn.addEventListener("click", async () => {
+    const text = projectInput.value.trim();
+    if (!text) {
+      statusLine.textContent = "Please describe a project first.";
+      return;
+    }
+
+    resetStages();
+    stagePlanner.classList.add("active");
+    planBtn.disabled = true;
+    statusLine.textContent = "Planning milestones and generating tasks — this can take 20-40 seconds…";
+    milestonesCard.style.display = "none";
+    tasksCard.style.display = "none";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_request: text }),
+      });
+
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
+
+      stageTask.classList.add("active");
+
+      renderMilestones(data.milestones || []);
+      renderTasks(data.tasks || []);
+      statusLine.textContent = `Done — ${data.milestones.length} milestones, ${data.tasks.length} tasks generated.`;
+    } catch (err) {
+      statusLine.textContent = "Something went wrong. Check that the backend is running and reachable.";
+    } finally {
+      planBtn.disabled = false;
+    }
+  });
+
+  remindBtn.addEventListener("click", async () => {
+    resetStages();
+    stageReminder.classList.add("active");
+    remindBtn.disabled = true;
+    statusLine.textContent = "Checking for due and overdue tasks…";
+    remindersCard.style.display = "none";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/remind`, { method: "POST" });
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
+      renderReminders(data.reminders || []);
+      statusLine.textContent = `Found ${data.due_count} task(s) needing a reminder.`;
+    } catch (err) {
+      statusLine.textContent = "Could not check reminders. Generate a plan first, then try again.";
+    } finally {
+      remindBtn.disabled = false;
+    }
+  });
+
+  function renderMilestones(milestones) {
+    milestonesList.innerHTML = "";
+    if (!milestones.length) {
+      milestonesList.innerHTML = '<div class="empty-state">No milestones generated.</div>';
+    } else {
+      milestones.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "milestone";
+        div.innerHTML = `
+          <div class="milestone-name">${m.milestone_name || ""}</div>
+          <div class="milestone-meta">${m.owner || ""} &middot; ${m.start_date || ""} → ${m.end_date || ""} &middot; ${m.priority || ""}</div>
+        `;
+        milestonesList.appendChild(div);
+      });
+    }
+    milestonesCard.style.display = "block";
+  }
+
+  function renderTasks(tasks) {
+    tasksBody.innerHTML = "";
+    if (!tasks.length) {
+      tasksBody.innerHTML = '<tr><td colspan="4" class="empty-state">No tasks generated.</td></tr>';
+    } else {
+      tasks.forEach(t => {
+        const tr = document.createElement("tr");
+        const priority = t.priority || "Medium";
+        tr.innerHTML = `
+          <td>${t.task_name || ""}</td>
+          <td>${t.assigned_to || ""}</td>
+          <td>${t.end_date || ""}</td>
+          <td><span class="pill ${priority}">${priority}</span></td>
+        `;
+        tasksBody.appendChild(tr);
+      });
+    }
+    tasksCard.style.display = "block";
+  }
+
+  function renderReminders(reminders) {
+    remindersList.innerHTML = "";
+    if (!reminders.length) {
+      remindersList.innerHTML = '<div class="empty-state">No tasks are due or overdue right now.</div>';
+    } else {
+      reminders.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "reminder-email";
+        const sentClass = r.sent ? "yes" : "no";
+        const sentLabel = r.sent ? "Sent" : "Not sent (SMTP not configured)";
+        div.innerHTML = `
+          <div class="subject">${r.subject} <span class="sent-badge ${sentClass}">${sentLabel}</span></div>
+          <div class="to">To: ${r.assigned_to} ${r.email ? "(" + r.email + ")" : ""}</div>
+          <div class="body">${r.body}</div>
+        `;
+        remindersList.appendChild(div);
+      });
+    }
+    remindersCard.style.display = "block";
+  }
+</script>
+
+</body>
+</html>

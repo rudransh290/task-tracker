@@ -1,0 +1,8 @@
+Employee_ID,Employee_Name,Email,Role,Department,Manager,Location
+E001,Rudransh Vats,rv3551@srmist.edu.in,Project Manager,Management,Self,Delhi
+E002,Kartik Singh,ks3285@srmist.edu.in,Frontend Developer,Development,Rudransh Vats,Delhi
+E003,Vikas Chaudhary,vc9225@srmist.edu.in,Backend Developer,Development,Rudransh Vats,Delhi
+E004,Neha Sharma,neha.sharma@example.com,UI/UX Designer,Design,Rudransh Vats,Delhi
+E005,Aman Kapoor,aman.kapoor@example.com,QA Tester,Testing,Rudransh Vats,Delhi
+E006,Priya Malhotra,priya.malhotra@example.com,Content Writer,Content,Rudransh Vats,Delhi
+E007,Rohan Verma,rohan.verma@example.com,DevOps Engineer,Operations,Rudransh Vats,Delhi

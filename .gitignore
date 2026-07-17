@@ -1,0 +1,7 @@
+.env
+venv/
+__pycache__/
+*.pyc
+tasks_store.json
+.DS_Store
+node_modules/
