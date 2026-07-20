@@ -8,6 +8,13 @@ An AI-powered project planning tool built with a three-agent pipeline using [Lan
 2. **Task Agent** — breaks each milestone into 3–8 concrete tasks, assigned to the right teammate based on role/department
 3. **Reminder Agent** — checks for due/overdue tasks and drafts polite reminder emails (can send real emails via Gmail SMTP)
 
+## 🚀 Live Demo
+
+- **Live Application:** [task-tracker-chi-liart.vercel.app](https://task-tracker-chi-liart.vercel.app)
+- **Backend API:** [task-tracker-backend-hax1.onrender.com](https://task-tracker-backend-hax1.onrender.com/api/health)
+
+> Note: The backend runs on Render's free tier, so the first request after inactivity may take 30–50 seconds to wake up.
+
 ---
 
 ## Project structure
