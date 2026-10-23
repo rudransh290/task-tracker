@@ -29,13 +29,12 @@ class TaskTrackerState(TypedDict):
     tasks: List[dict]
 
 
-    def get_llm():
+def get_llm():
     return ChatGroq(
         model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
         temperature=0,
         reasoning_effort="low",
     )
-
 
 def _clean_json(raw: str) -> str:
     raw = raw.strip()
