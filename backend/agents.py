@@ -28,9 +28,12 @@ class TaskTrackerState(TypedDict):
     milestones: List[dict]
     tasks: List[dict]
 
-
 def get_llm():
-    return ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    return ChatGroq(
+        model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+        temperature=0,
+        model_kwargs={"reasoning_effort": "low"},
+    )
 
 
 def _clean_json(raw: str) -> str:
